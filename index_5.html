@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ResearchDesk — Indian equity research</title>
+<meta name="description" content="Company research for 2,300 Indian listed companies. Ratios benchmarked against peers, ownership history, pledge tracking and earnings call transcripts.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%2316233a'/%3E%3Ctext x='50' y='68' font-size='58' font-family='Georgia' fill='%23b0801f' text-anchor='middle'%3ER%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4; --panel:#fffefb; --ink:#16233a; --ink2:#3c4859; --mut:#6f7789;
+  --mut2:#9aa1af; --line:#e6e1d7; --line2:#efebe3;
+  --gold:#b0801f; --gold-soft:#f3ecdb;
+  --red:#a8352f; --grn:#1f6b4a; --amb:#8a6a1a; --accent:#16233a;
+  --serif:'Newsreader',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --r:5px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--serif);
+     font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1320px;margin:0 auto;padding:0 26px 70px}
+
+/* nav */
+nav{border-bottom:1px solid var(--line);margin-bottom:24px;padding:15px 0;
+    display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+    position:sticky;top:0;background:var(--bg);z-index:60}
+.brand{font-size:20px;font-weight:500;letter-spacing:-.3px;text-decoration:none;white-space:nowrap}
+.brand b{font-weight:600;color:var(--gold)}
+.searchwrap{flex:1;max-width:440px;position:relative}
+#q{width:100%;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+   padding:8px 12px 8px 32px;font-family:var(--sans);font-size:13px;border-radius:var(--r)}
+#q:focus{outline:none;border-color:var(--gold)}
+.sicon{position:absolute;left:11px;top:50%;transform:translateY(-50%);
+       width:13px;height:13px;stroke:var(--mut2);fill:none;stroke-width:2.4}
+#sug{position:absolute;top:calc(100% + 5px);left:0;right:0;background:var(--panel);
+     border:1px solid var(--line);border-radius:var(--r);z-index:70;max-height:360px;
+     overflow-y:auto;display:none;box-shadow:0 10px 30px rgba(22,35,58,.10)}
+#sug div{padding:9px 13px;cursor:pointer;font-family:var(--sans);font-size:13px;
+         border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;gap:10px}
+#sug div:last-child{border-bottom:none}
+#sug div:hover,#sug div.on{background:var(--gold-soft)}
+#sug small{color:var(--mut2);font-family:var(--mono);font-size:11px;white-space:nowrap}
+
+/* company header */
+.chead{display:grid;grid-template-columns:1fr 296px;gap:34px;align-items:start;
+       padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:24px}
+@media(max-width:1000px){.chead{grid-template-columns:1fr;gap:18px}}
+.ptag{font-family:var(--sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+      color:var(--gold);font-weight:600;margin-bottom:7px}
+h1{font-size:clamp(25px,3.2vw,33px);font-weight:500;letter-spacing:-.8px;line-height:1.12}
+.ids{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px;letter-spacing:.2px}
+.tags{margin-top:11px;display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-family:var(--sans);font-size:10px;letter-spacing:.5px;text-transform:uppercase;
+     font-weight:500;border:1px solid var(--line);padding:3px 8px;color:var(--mut);
+     border-radius:3px;background:var(--panel)}
+.tag.g{border-color:var(--grn);color:var(--grn)} .tag.r{border-color:var(--red);color:var(--red)}
+.desc{font-size:15px;line-height:1.7;margin-top:15px;color:var(--ink2);max-width:76ch}
+.sub{font-family:var(--sans);font-size:11px;color:var(--mut2);margin-top:10px}
+.snap{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+      padding:13px 16px;border-top:2px solid var(--ink)}
+.snaprow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;
+         border-bottom:1px solid var(--line2);font-size:13px}
+.snaprow:last-child{border-bottom:none}
+.snaprow span:first-child{color:var(--mut);font-family:var(--sans);font-size:11.5px}
+.snaprow span:last-child{font-family:var(--mono);font-size:12px;font-weight:500}
+
+/* grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px 18px}
+.card.full{grid-column:1 / -1}
+section{margin:0}
+.sech{font-family:var(--sans);font-size:10px;letter-spacing:1.3px;text-transform:uppercase;
+      font-weight:600;color:var(--mut);padding-bottom:10px;margin-bottom:13px;
+      border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;
+      align-items:baseline;gap:12px;flex-wrap:wrap}
+.sech i{font-style:normal;letter-spacing:.1px;text-transform:none;font-size:11px;
+        color:var(--mut2);font-weight:400}
+
+/* metrics */
+.mrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:14px}
+.mlab{font-family:var(--sans);font-size:10px;letter-spacing:.4px;text-transform:uppercase;
+      color:var(--mut2);font-weight:500}
+.mval{font-size:22px;font-weight:500;letter-spacing:-.5px;margin-top:4px;line-height:1.15}
+.mdel{font-family:var(--mono);font-size:11px;margin-top:2px}
+.up{color:var(--grn)} .dn{color:var(--red)} .fl{color:var(--mut2)}
+
+/* tables */
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-family:var(--sans);font-size:10px;letter-spacing:.4px;text-transform:uppercase;
+   color:var(--mut2);text-align:right;padding:0 0 8px 16px;font-weight:500;white-space:nowrap}
+th:first-child{text-align:left;padding-left:0}
+td{padding:7px 0 7px 16px;border-top:1px solid var(--line2);text-align:right;
+   font-family:var(--mono);font-size:12px;white-space:nowrap}
+td:first-child{text-align:left;font-family:var(--serif);font-size:13.5px;padding-left:0;color:var(--ink2)}
+td.dim{color:var(--mut2)} td.v{font-family:var(--sans);font-size:10.5px;font-weight:500}
+th.sep,td.sep{border-left:1px solid var(--line);padding-left:16px}
+tbody tr:hover td{background:var(--gold-soft)}
+
+.cols{display:grid;grid-template-columns:1fr;gap:0}
+
+/* flags */
+.flag{padding:9px 0 9px 12px;border-left:2px solid var(--line);margin-bottom:10px}
+.flag:last-child{margin-bottom:0}
+.flag.r{border-left-color:var(--red)} .flag.g{border-left-color:var(--grn)}
+.flagt{font-family:var(--sans);font-size:10px;letter-spacing:.5px;text-transform:uppercase;
+       font-weight:600;margin-bottom:3px;color:var(--mut)}
+.flag.r .flagt{color:var(--red)} .flag.g .flagt{color:var(--grn)}
+.flagb{font-size:13.5px;line-height:1.6;color:var(--ink2)}
+
+/* rank bars */
+.rk{display:grid;grid-template-columns:96px 1fr 66px;gap:10px;align-items:center;
+    padding:8px 0;border-bottom:1px solid var(--line2)}
+.rk:last-child{border-bottom:none}
+.rkn{font-family:var(--sans);font-size:11.5px;color:var(--ink2)}
+.rkbar{height:5px;background:var(--line2);position:relative;border-radius:3px}
+.rkbar u{position:absolute;top:-3px;width:3px;height:11px;background:var(--gold);border-radius:2px}
+.rkv{text-align:right;font-family:var(--mono);font-size:11px;color:var(--mut2)}
+.rkv b{color:var(--ink);font-weight:500}
+
+/* chart */
+.chart{border-bottom:1px solid var(--line2);padding-bottom:3px}
+.clab{display:flex;justify-content:space-between;font-family:var(--mono);
+      font-size:10px;color:var(--mut2);margin-top:5px}
+.ckey{font-family:var(--sans);font-size:11px;color:var(--mut);margin-bottom:9px;
+      display:flex;gap:15px;flex-wrap:wrap}
+.ckey span{display:flex;align-items:center;gap:5px}
+.ckey i{width:13px;height:2px;display:inline-block;border-radius:2px}
+
+/* news + docs */
+.nw{padding:10px 0;border-top:1px solid var(--line2)}
+.nw:first-child{border-top:none;padding-top:0}
+.nwt{font-size:14.5px;line-height:1.5;text-decoration:none;display:block;color:var(--ink)}
+.nwt:hover{color:var(--gold)}
+.nwm{font-family:var(--sans);font-size:11px;color:var(--mut2);margin-top:4px}
+.nwm b{color:var(--mut);font-weight:500}
+.th{border-bottom:1px solid var(--line2);padding:9px 0}
+.th:last-child{border-bottom:none}
+.thn{font-family:var(--sans);font-size:12.5px}
+.thn a{text-decoration:none}.thn a:hover{color:var(--gold)}
+.thm{font-family:var(--mono);font-size:10.5px;color:var(--mut2);margin-top:2px}
+
+/* states */
+.msg{padding:70px 0;text-align:center;color:var(--mut);font-family:var(--sans);font-size:14px}
+.home{padding:60px 0 34px;max-width:62ch}
+.home h2{font-size:33px;font-weight:500;letter-spacing:-1px;line-height:1.22;margin-bottom:16px}
+.home p{color:var(--ink2);font-size:16px;line-height:1.72;margin-bottom:13px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+       gap:14px;margin-top:32px;max-width:920px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+      padding:15px 17px;border-top:2px solid var(--gold)}
+.statv{font-size:25px;font-weight:500;letter-spacing:-.6px}
+.statl{font-family:var(--sans);font-size:11px;color:var(--mut2);margin-top:3px}
+footer{margin-top:40px;border-top:1px solid var(--line);padding-top:13px;
+       font-family:var(--sans);font-size:10.5px;color:var(--mut2);line-height:1.65}
+@media(max-width:1000px){.ratiogrid{grid-template-columns:1fr !important;gap:18px !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav>
+  <a class="brand" href="./">Research<b>Desk</b></a>
+  <div class="searchwrap">
+    <svg class="sicon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="q" placeholder="Search 2,300 companies…" autocomplete="off" spellcheck="false">
+    <div id="sug"></div>
+  </div>
+</nav>
+
+<main id="main"><div class="msg">Loading…</div></main>
+
+<footer>
+  Sources: BSE corporate filings, shareholding XBRL and results snapshots; Upstox fundamentals;
+  exchange financial statements; Google News. Figures are as reported and may contain errors.
+  Not investment advice.
+</footer>
+</div>
+
+<script>
+const SB  = 'https://fqnemnikxilhocurgehk.supabase.co/rest/v1/';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxbmVtbmlreGlsaG9jdXJnZWhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3Njg3NzEsImV4cCI6MjEwMTM0NDc3MX0.I5_P9pRRgQmLEe0gPsx1TzMMqdGqIAi9Bzp0jBES_Fw';
+const H = {apikey:KEY, Authorization:'Bearer '+KEY};
+
+const $ = s => document.querySelector(s);
+async function api(path){
+  try{ const r = await fetch(SB+path,{headers:H}); return r.ok ? await r.json() : []; }
+  catch(e){ return []; }
+}
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- formatting ---------- */
+function cr(v){
+  if(v==null||isNaN(v)) return '—';
+  const n = Number(v), a = Math.abs(n), s = n<0?'−':'';
+  if(a>=100000) return s+'₹'+(a/100000).toFixed(2)+'L Cr';
+  if(a>=1)      return s+'₹'+Math.round(a).toLocaleString('en-IN')+' Cr';
+  return s+'₹'+a.toFixed(2)+' Cr';
+}
+function raw(v,d){ return (v==null||isNaN(v)) ? '—' : Number(v).toFixed(d==null?2:d); }
+function pct(v,d){ return (v==null||isNaN(v)) ? '—' : Number(v).toFixed(d==null?2:d)+'%'; }
+function delta(cur,prev,suffix){
+  if(cur==null||prev==null||!prev) return '';
+  const p = (cur-prev)/Math.abs(prev)*100;
+  const cls = p>0?'up':(p<0?'dn':'fl');
+  return `<div class="mdel ${cls}">${p>0?'+':''}${p.toFixed(1)}% ${suffix||''}</div>`;
+}
+function dmy(s){
+  if(!s) return '—';
+  const d = new Date(s);
+  if(isNaN(d)) return String(s).slice(0,10);
+  return d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getFullYear();
+}
+const MON = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+const qOrder = p => {
+  const t = String(p).match(/([A-Za-z]{3})[a-z]*[\s-]*(\d{2,4})/);
+  if(!t) return 0;
+  let y = +t[2]; if(y < 100) y += 2000;
+  return y*100 + (MON[t[1]] || 0);
+};
+
+/* ---------- search ---------- */
+let LIST = [], hi = -1;
+async function loadList(){
+  if(LIST.length) return LIST;
+  const base='companies?select=scrip_code,company_name,nse_symbol,market_cap&or=(group_code.eq.A,group_code.eq.B)&order=market_cap.desc.nullslast';
+  for(let off=0; off<4000; off+=1000){
+    const part = await api(base+'&limit=1000&offset='+off);
+    LIST = LIST.concat(part);
+    if(part.length<1000) break;
+  }
+  return LIST;
+}
+function renderSug(items){
+  const box = $('#sug');
+  if(!items.length){ box.style.display='none'; return; }
+  box.innerHTML = items.map((c,i)=>
+    `<div data-code="${c.scrip_code}" data-i="${i}">
+       <span>${esc(c.company_name)}</span>
+       <small>${c.market_cap? '₹'+Math.round(c.market_cap).toLocaleString('en-IN')+' Cr':''}</small>
+     </div>`).join('');
+  box.style.display='block'; hi=-1;
+  box.querySelectorAll('div').forEach(d=>d.onclick=()=>go(d.dataset.code));
+}
+function search(v){
+  const s = v.trim().toLowerCase();
+  if(s.length<2){ $('#sug').style.display='none'; return; }
+  const starts=[], has=[];
+  for(const c of LIST){
+    const n=(c.company_name||'').toLowerCase(), y=(c.nse_symbol||'').toLowerCase();
+    if(n.startsWith(s)||y===s) starts.push(c);
+    else if(n.includes(s)||y.includes(s)) has.push(c);
+    if(starts.length>=9) break;
+  }
+  renderSug(starts.concat(has).slice(0,9));
+}
+function go(code){ location.search = '?code='+code; }
+$('#q').addEventListener('input', e=>{ loadList().then(()=>search(e.target.value)); });
+$('#q').addEventListener('keydown', e=>{
+  const box=$('#sug'), items=[...box.querySelectorAll('div')];
+  if(!items.length) return;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault();
+    hi += e.key==='ArrowDown'?1:-1;
+    if(hi<0) hi=items.length-1; if(hi>=items.length) hi=0;
+    items.forEach((d,i)=>d.classList.toggle('on', i===hi));
+  } else if(e.key==='Enter'){
+    go(items[hi<0?0:hi].dataset.code);
+  } else if(e.key==='Escape'){ box.style.display='none'; }
+});
+document.addEventListener('click', e=>{ if(!e.target.closest('.searchwrap')) $('#sug').style.display='none'; });
+
+/* ---------- home ---------- */
+async function home(){
+  $('#main').innerHTML = `
+  <div class="home">
+    <div class="ptag">Indian equity research</div>
+    <h2>Company research built from primary filings, not summaries.</h2>
+    <p>Every ratio benchmarked against a real peer group. Promoter stake and pledge tracked
+       quarter by quarter. Earnings call transcripts indexed and searchable. Financial statements
+       pulled directly from exchange filings rather than retyped.</p>
+    <p>Search any listed company above to begin.</p>
+    <div class="stats" id="hs"></div>
+  </div>`;
+  const [co,ra,sh,tr] = await Promise.all([
+    api('companies?select=scrip_code&or=(group_code.eq.A,group_code.eq.B)&limit=1'),
+    api('ratios?select=scrip_code&limit=1'),
+    api('shareholding?select=scrip_code&limit=1'),
+    api('transcripts?select=id&limit=1')
+  ]);
+  const counts = await Promise.all([
+    fetch(SB+'companies?select=scrip_code&or=(group_code.eq.A,group_code.eq.B)',{headers:{...H,Prefer:'count=exact',Range:'0-0'}}),
+    fetch(SB+'ratios?select=scrip_code',{headers:{...H,Prefer:'count=exact',Range:'0-0'}}),
+    fetch(SB+'shareholding?select=scrip_code',{headers:{...H,Prefer:'count=exact',Range:'0-0'}}),
+    fetch(SB+'transcripts?select=id',{headers:{...H,Prefer:'count=exact',Range:'0-0'}})
+  ]);
+  const n = counts.map(r=>{ const cr=r.headers.get('content-range')||''; return +(cr.split('/')[1]||0); });
+  $('#hs').innerHTML = [
+    [n[0],'companies covered'],[n[1],'with computed ratios'],
+    [n[2],'shareholding filings'],[n[3],'transcripts indexed']
+  ].map(([v,l])=>`<div class="stat"><div class="statv">${v.toLocaleString('en-IN')}</div>
+     <div class="statl">${l}</div></div>`).join('');
+}
+
+/* ---------- company ---------- */
+async function company(code){
+  const [co] = await api(`companies?scrip_code=eq.${code}&select=*`);
+  if(!co){ $('#main').innerHTML='<div class="msg">Company not found.</div>'; return; }
+  document.title = co.company_name + ' — ResearchDesk';
+
+  const [[meta],[ups],[rat],res,shp,fin,news,docs] = await Promise.all([
+    api(`company_meta?scrip_code=eq.${code}&select=*`),
+    api(`company_upstox?scrip_code=eq.${code}&select=*`),
+    api(`ratios?scrip_code=eq.${code}&select=*`),
+    api(`results_snapshot?scrip_code=eq.${code}&select=*`),
+    api(`shareholding?scrip_code=eq.${code}&filing_type=eq.quarterly&select=*&order=qtrid.desc&limit=20`),
+    api(`financials?scrip_code=eq.${code}&freq=eq.annual&select=statement,period,field,value`),
+    api(`news?scrip_code=eq.${code}&select=*&order=published.desc&limit=5`),
+    api(`transcripts?scrip_code=eq.${code}&select=headline,filed_at,pages,pdf_url&order=filed_at.desc&limit=6`)
+  ]);
+
+  let peers = [], stat = null;
+  if(rat && rat.peer_group){
+    [peers,[stat]] = await Promise.all([
+      api(`ratios?peer_group=eq.${encodeURIComponent(rat.peer_group)}&select=scrip_code,roce,roe,debt_equity,cfo_pat,current_ratio`),
+      api(`sector_stats?peer_group=eq.${encodeURIComponent(rat.peer_group)}&select=*`)
+    ]);
+  }
+
+  $('#main').innerHTML =
+      head(co,meta,ups,rat,shp,res)
+    + '<div class="grid">'
+    +   `<div class="card">${latest(res,rat)}</div>`
+    +   `<div class="card">${own(shp)}</div>`
+    +   `<div class="card full">${ratios(rat,stat,peers,code)}</div>`
+    +   `<div class="card full">${quarterly(res)}</div>`
+    +   `<div class="card full">${annual(fin)}</div>`
+    +   `<div class="card">${newsOnly(news)}</div>`
+    +   `<div class="card">${docsOnly(docs)}</div>`
+    + '</div>';
+  wireDesc();
+}
+
+function descBlock(t){
+  const LIM=340;
+  if(t.length<=LIM) return `<div class="desc">${esc(t)}</div>`;
+  let cut=t.lastIndexOf(' ',LIM); if(cut<0) cut=LIM;
+  return `<div class="desc"><span id="dshort">${esc(t.slice(0,cut))}… </span>
+    <span id="dfull" style="display:none">${esc(t)} </span>
+    <a href="#" id="dtog" style="font-family:var(--sans);font-size:12.5px;color:var(--mut);text-decoration:underline;white-space:nowrap">more</a></div>`;
+}
+function wireDesc(){
+  const t=document.getElementById('dtog'); if(!t) return;
+  t.onclick=e=>{ e.preventDefault();
+    const sh=document.getElementById('dshort'), fu=document.getElementById('dfull');
+    const open = fu.style.display==='none';
+    sh.style.display = open?'none':'inline';
+    fu.style.display = open?'inline':'none';
+    t.textContent = open?'less':'more';
+  };
+}
+function head(co,meta,ups,rat,shp,res){
+  const tags = [`<span class="tag">Group ${esc(co.group_code)}</span>`];
+  if(meta&&meta.grp_index&&meta.grp_index.includes('/')) tags.push(`<span class="tag">${esc(meta.grp_index.split('/')[1].trim())}</span>`);
+  if(['T','XT','Z','ZP'].includes(co.group_code)) tags.push('<span class="tag r">Surveillance</span>');
+  const path = meta ? [meta.industry_new,meta.igroup,meta.isubgroup].filter(Boolean).join(' &nbsp;›&nbsp; ') : '';
+  const l = shp&&shp[0], q = (res||[]).filter(r=>r.period_type==='quarter').sort((a,b)=>qOrder(b.period)-qOrder(a.period))[0];
+  const sr = (a,b)=>`<div class="snaprow"><span>${a}</span><span>${b}</span></div>`;
+  const snap = `<div class="snap">
+    ${sr('Market cap', co.market_cap?cr(co.market_cap):'—')}
+    ${rat&&rat.roce!=null?sr('ROCE',pct(rat.roce)):''}
+    ${rat&&rat.roe!=null?sr('ROE',pct(rat.roe)):''}
+    ${rat&&rat.debt_equity!=null?sr('Debt / equity',raw(rat.debt_equity)):''}
+    ${l&&l.promoter_pct!=null?sr('Promoter',pct(l.promoter_pct)):''}
+    ${l?sr('Encumbered', l.promoter_encumbered_pct?pct(l.promoter_encumbered_pct):'Nil'):''}
+    ${q?sr('Last reported',esc(q.period)):''}
+  </div>`;
+  return `
+  <div class="chead"><div>
+  <div class="ptag">Company</div>
+  <h1>${esc(co.company_name)}</h1>
+  <div class="ids">${esc(co.nse_symbol||'')} &nbsp;·&nbsp; BSE ${esc(co.scrip_code)} &nbsp;·&nbsp; ${esc(co.isin||'')}${
+    co.market_cap? ' &nbsp;·&nbsp; '+cr(co.market_cap)+' mcap':''}</div>
+  <div class="tags">${tags.join('')}</div>
+  ${ups&&ups.company_profile ? descBlock(ups.company_profile):''}
+  ${path ? `<div class="sub">${path}</div>`:''}
+  </div>${snap}</div>`;
+}
+
+function own(shp){
+  if(!shp||!shp.length) return '';
+  const l = shp[0], p = shp[1];
+  const box=(lab,val,note)=>`<div class="m"><div class="mlab">${lab}</div>
+     <div class="mval">${val}</div><div class="mdel fl">${note||''}</div></div>`;
+  const d=(a,b)=>{ if(a==null||b==null) return ''; const x=a-b;
+    return (x>0?'+':x<0?'−':'')+Math.abs(x).toFixed(2)+' QoQ'; };
+  const enc = l.promoter_encumbered_pct;
+
+  // chart
+  let chart='', legend='';
+  const ser = shp.slice().reverse().filter(r=>r.promoter_pct!=null);
+  if(ser.length>=4){
+    const W=440,Hh=88, xs=i=>i*(W/(ser.length-1));
+    const keys = ['promoter_pct','fii_pct','dii_pct'].filter(k=>{
+      const v = ser.map(r=>r[k]).filter(x=>x!=null);
+      if(v.length < 3) return false;
+      return Math.max(...v) >= 1.5;           // ignore negligible holders
+    });
+    const all=[]; ser.forEach(r=>keys.forEach(k=>{ if(r[k]!=null) all.push(r[k]); }));
+    const mx=Math.max(...all), mn=Math.min(...all), rg=(mx-mn)||1;
+    const ys=v=>Hh-6-((v-mn)/rg)*(Hh-14);
+    const line=(k,c,w)=>{
+      const pts=ser.map((r,i)=> r[k]==null?null:`${xs(i).toFixed(1)},${ys(r[k]).toFixed(1)}`).filter(Boolean).join(' ');
+      return pts?`<polyline fill="none" stroke="${c}" stroke-width="${w}" points="${pts}"/>`:'';
+    };
+    const COL={promoter_pct:'var(--ink)',fii_pct:'var(--gold)',dii_pct:'var(--grn)'};
+    const LBL={promoter_pct:'Promoter',fii_pct:'FII',dii_pct:'DII'};
+    chart = `<div class="chart">
+      <svg viewBox="0 0 ${W} ${Hh}" width="100%" height="${Hh}" preserveAspectRatio="none">
+        ${keys.map(k=>line(k,COL[k],k==='promoter_pct'?2:1.5)).join('')}
+      </svg></div>
+      <div class="clab"><span>${esc(ser[0].quarter)}</span><span>${esc(ser[ser.length-1].quarter)}</span></div>`;
+    legend = keys.map(k=>`<span><i style="background:${COL[k]}"></i>${LBL[k]}</span>`).join('');
+    if(!keys.length) chart='';
+  }
+
+  const notes=[];
+  if(ser.length>=4){
+    const f=ser[0], t=ser[ser.length-1];
+    if(f.promoter_pct!=null&&t.promoter_pct!=null){
+      const ch=t.promoter_pct-f.promoter_pct;
+      notes.push(Math.abs(ch)<0.5
+        ? `<div class="flag"><div class="flagt">Promoter stake steady</div><div class="flagb">${pct(t.promoter_pct)} today against ${pct(f.promoter_pct)} ${ser.length} quarters ago — no meaningful change.</div></div>`
+        : `<div class="flag ${ch<0?'r':'g'}"><div class="flagt">Promoter stake ${ch<0?'declining':'rising'}</div><div class="flagb">${ch>0?'Up':'Down'} ${Math.abs(ch).toFixed(2)} points over ${ser.length} quarters, from ${pct(f.promoter_pct)} to ${pct(t.promoter_pct)}.</div></div>`);
+    }
+    if(f.fii_pct!=null&&t.fii_pct!=null&&Math.abs(t.fii_pct-f.fii_pct)>=1){
+      const ch=t.fii_pct-f.fii_pct;
+      notes.push(`<div class="flag ${ch<0?'r':'g'}"><div class="flagt">Foreign holding ${ch<0?'reducing':'building'}</div><div class="flagb">FII stake moved from ${pct(f.fii_pct)} to ${pct(t.fii_pct)} across the period.</div></div>`);
+    }
+  }
+  if(enc!=null&&enc>0) notes.push(`<div class="flag r"><div class="flagt">Promoter shares encumbered</div><div class="flagb">${pct(enc)} of the promoter holding is pledged or otherwise encumbered — lender claims sit against it.</div></div>`);
+  else if(enc!=null) notes.push(`<div class="flag g"><div class="flagt">No encumbrance</div><div class="flagb">No promoter shares pledged or under any other encumbrance.</div></div>`);
+
+  return `<section>
+   <div class="sech"><span>Ownership</span><i>${esc(l.quarter)} · ${shp.length} quarters on record</i></div>
+   <div class="mrow">
+     ${box('Promoter',pct(l.promoter_pct),d(l.promoter_pct,p&&p.promoter_pct))}
+     ${box('Encumbered',enc==null?'—':(enc>0?pct(enc):'Nil'),enc>0?'of promoter stake':'no pledge')}
+     ${box('FII',pct(l.fii_pct),d(l.fii_pct,p&&p.fii_pct))}
+     ${box('DII',pct(l.dii_pct),d(l.dii_pct,p&&p.dii_pct))}
+     ${box('Shareholders',l.public_holders?Number(l.public_holders).toLocaleString('en-IN'):'—','public')}
+   </div>
+   ${chart||notes.length?`<div style="margin-top:18px"><div>
+      ${chart?`<div class="ckey">${legend}</div>${chart}`:''}
+     </div><div>${notes.join('')}</div></div>`:''}
+  </section>`;
+}
+
+function latest(res,rat){
+  const q = res.filter(r=>r.period_type==='quarter').sort((a,b)=>qOrder(b.period)-qOrder(a.period));
+  if(!q.length && !rat) return '';
+  const c=q[0], p=q[1];
+  if(!c) return '';
+  return `<section>
+    <div class="sech"><span>Latest quarter</span><i>${esc(c.period)}</i></div>
+    <div class="mrow">
+      <div class="m"><div class="mlab">Revenue</div><div class="mval">${cr(c.revenue)}</div>${delta(c.revenue,p&&p.revenue,'QoQ')}</div>
+      <div class="m"><div class="mlab">Net profit</div><div class="mval">${cr(c.net_profit)}</div>${delta(c.net_profit,p&&p.net_profit,'QoQ')}</div>
+      <div class="m"><div class="mlab">Operating margin</div><div class="mval">${pct(c.opm)}</div><div class="mdel fl">${p&&p.opm!=null?'was '+pct(p.opm):''}</div></div>
+      <div class="m"><div class="mlab">EPS</div><div class="mval">${c.eps!=null?'₹'+raw(c.eps):'—'}</div><div class="mdel fl">${c.cash_eps!=null?'cash ₹'+raw(c.cash_eps):''}</div></div>
+    </div></section>`;
+}
+
+function ratios(rat,stat,peers,code){
+  if(!rat) return '';
+  const rows=[
+    ['ROCE','roce','med_roce','pct',1],['ROE','roe','med_roe','pct',1],
+    ['ROA','roa',null,'pct',1],['Operating margin','opm','med_opm','pct',1],
+    ['Net margin','npm','med_npm','pct',1],['Debt / equity','debt_equity','med_debt_equity','num',0],
+    ['Current ratio','current_ratio','med_current_ratio','num',1],
+    ['CFO / PAT','cfo_pat','med_cfo_pat','num',1],
+    ['Debtor days','debtor_days','med_debtor_days','day',1],
+    ['Cash cycle','cash_cycle','med_cash_cycle','day',1]
+  ];
+  const fmt=(v,k)=> v==null?'—': k==='pct'?pct(v):k==='day'?raw(v,1)+' d':raw(v,2);
+  const lower=new Set(['debt_equity','debtor_days','cash_cycle']);
+
+  const body = rows.map(([lab,f,mf,k])=>{
+    const v=rat[f], m=mf&&stat?stat[mf]:null;
+    let read='';
+    if(v!=null&&m!=null){
+      const better = lower.has(f) ? v<m : v>m;
+      const gap = Math.abs(v-m)/(Math.abs(m)||1);
+      read = gap<0.08 ? `<span style="color:var(--mut2)">In line</span>`
+           : better ? `<span style="color:var(--grn)">Better</span>`
+                    : `<span style="color:var(--red)">Worse</span>`;
+    }
+    return `<tr><td>${lab}</td><td>${fmt(v,k)}</td><td class="dim">${fmt(m,k)}</td><td class="v">${read}</td></tr>`;
+  }).join('');
+
+  // ranks
+  let ranks='';
+  if(peers&&peers.length>=4){
+    const defs=[['ROCE','roce',false],['ROE','roe',false],['Debt / equity','debt_equity',true],
+                ['CFO / PAT','cfo_pat',false],['Current ratio','current_ratio',false]];
+    ranks = defs.map(([lab,f,asc])=>{
+      const vals=peers.filter(p=>p[f]!=null).map(p=>({c:p.scrip_code,v:+p[f]}));
+      if(vals.length<4) return '';
+      vals.sort((a,b)=> asc ? a.v-b.v : b.v-a.v);
+      const i=vals.findIndex(x=>x.c===code);
+      if(i<0) return '';
+      const posPct = vals.length>1 ? (1-(i/(vals.length-1)))*100 : 50;
+      return `<div class="rk"><div class="rkn">${lab}</div>
+        <div class="rkbar"><u style="left:${posPct.toFixed(0)}%"></u></div>
+        <div class="rkv"><b>${i+1}</b> of ${vals.length}</div></div>`;
+    }).join('');
+  }
+
+  const flags=[];
+  if(rat.cfo_pat!=null){
+    flags.push(rat.cfo_pat>=1
+      ? `<div class="flag g"><div class="flagt">Earnings backed by cash</div><div class="flagb">Operating cash flow is ${raw(rat.cfo_pat)}× reported profit.</div></div>`
+      : rat.cfo_pat>0
+      ? `<div class="flag r"><div class="flagt">Cash lags profit</div><div class="flagb">Operating cash flow is only ${raw(rat.cfo_pat)}× reported profit — worth checking receivables.</div></div>`
+      : `<div class="flag r"><div class="flagt">Negative operating cash flow</div><div class="flagb">The business consumed cash despite its reported profit.</div></div>`);
+  }
+  if(rat.debt_equity!=null&&rat.debt_equity>1.5)
+    flags.push(`<div class="flag r"><div class="flagt">Leverage elevated</div><div class="flagb">Debt is ${raw(rat.debt_equity)}× equity.</div></div>`);
+
+  return `<section>
+    <div class="sech"><span>Ratios</span><i>${stat?`vs ${esc(rat.peer_group)} · ${stat.companies} peers`:'peer group unavailable'}${rat.period?' · FY ending '+dmy(rat.period):''}</i></div>
+    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:28px" class="ratiogrid">
+      <div class="scroll"><table>
+        <tr><th>Metric</th><th>Company</th><th>Peer median</th><th style="width:74px">Read</th></tr>
+        ${body}
+      </table></div>
+      <div>
+        ${ranks?`<div class="rkn" style="color:var(--mut2);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px">Rank among peers</div>${ranks}`:''}
+        <div style="margin-top:${ranks?'16px':'0'}">${flags.join('')}</div>
+      </div>
+    </div></section>`;
+}
+
+function quarterly(res){
+  const q = res.filter(r=>r.period_type==='quarter').sort((a,b)=>qOrder(a.period)-qOrder(b.period));
+  const y = res.filter(r=>r.period_type==='annual');
+  if(!q.length) return '';
+  const cols = q.concat(y);
+  const row=(lab,f,fn)=>`<tr><td>${lab}</td>`+cols.map((c,i)=>
+    `<td class="${i>=q.length?'sep':''}">${c[f]==null?'—':fn(c[f])}</td>`).join('')+'</tr>';
+  return `<section>
+    <div class="sech"><span>Results</span><i>₹ crore · history builds forward each quarter</i></div>
+    <div class="scroll"><table>
+      <tr><th>&nbsp;</th>${cols.map((c,i)=>`<th class="${i>=q.length?'sep':''}">${esc(c.period)}</th>`).join('')}</tr>
+      ${row('Revenue','revenue',v=>Math.round(v).toLocaleString('en-IN'))}
+      ${row('Net profit','net_profit',v=>Math.round(v).toLocaleString('en-IN'))}
+      ${row('OPM %','opm',v=>raw(v))}
+      ${row('NPM %','npm',v=>raw(v))}
+      ${row('EPS ₹','eps',v=>raw(v))}
+      ${row('Cash EPS ₹','cash_eps',v=>raw(v))}
+    </table></div></section>`;
+}
+
+function annual(fin){
+  if(!fin||!fin.length) return '';
+  const map={};
+  fin.forEach(r=>{ (map[r.period] = map[r.period]||{})[r.field] = r.value; });
+  const periods = Object.keys(map).sort().slice(-5);
+  if(periods.length<2) return '';
+  const F=[['Revenue','Total Revenue'],['Operating profit','EBIT'],['Net profit','Net Income'],
+           ['Total assets','Total Assets'],['Total debt','Total Debt'],['Equity','Stockholders Equity'],
+           ['Operating cash flow','Operating Cash Flow'],['Free cash flow','Free Cash Flow'],
+           ['Shares outstanding','Ordinary Shares Number']];
+  const body = F.map(([lab,f])=>{
+    if(!periods.some(p=>map[p][f]!=null)) return '';
+    return `<tr><td>${lab}</td>`+periods.map(p=>{
+      const v=map[p][f];
+      if(v==null) return '<td>—</td>';
+      if(f==='Ordinary Shares Number') return `<td>${(v/10000000).toFixed(1)} Cr</td>`;
+      return `<td>${Math.round(v/10000000).toLocaleString('en-IN')}</td>`;
+    }).join('')+'</tr>';
+  }).join('');
+
+  // dilution note
+  let note='';
+  const sh=periods.map(p=>map[p]['Ordinary Shares Number']).filter(v=>v!=null);
+  if(sh.length>=2){
+    const ch=(sh[sh.length-1]-sh[0])/sh[0]*100;
+    if(ch>3) note=`<div class="flag ${ch>60?'':'r'}" style="margin-top:14px"><div class="flagt">Share count rose ${ch.toFixed(0)}%</div><div class="flagb">${ch>60?'A large jump usually means a bonus issue or split rather than dilution — per-share figures across the period are not directly comparable.':'Outstanding shares increased over the period, so per-share growth understates absolute growth.'}</div></div>`;
+  }
+  return `<section>
+    <div class="sech"><span>Annual</span><i>₹ crore · as filed</i></div>
+    <div class="scroll"><table>
+      <tr><th>&nbsp;</th>${periods.map(p=>`<th>${p.slice(0,4)}</th>`).join('')}</tr>
+      ${body}
+    </table></div>${note}</section>`;
+}
+
+function newsOnly(news){
+  const n = (news&&news.length) ? news.map(x=>
+    `<div class="nw"><a class="nwt" href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.headline)}</a>
+     <div class="nwm"><b>${esc(x.publisher||'')}</b> · ${dmy(x.published)}</div></div>`).join('')
+    : '<div class="nwm">No recent coverage from tracked publications.</div>';
+  return `<section><div class="sech"><span>In the news</span><i>links to publisher</i></div>${n}</section>`;
+}
+function docsOnly(docs){
+  const d = (docs&&docs.length) ? docs.map(x=>
+    `<div class="th"><div class="thn"><a href="${esc(x.pdf_url)}" target="_blank" rel="noopener">${esc((x.headline||'Transcript').slice(0,80))}</a></div>
+     <div class="thm">${dmy(x.filed_at)}${x.pages?' · '+x.pages+' pages':''}</div></div>`).join('')
+    : '<div class="thm">No transcripts indexed yet.</div>';
+  return `<section><div class="sech"><span>Earnings calls</span><i>as filed with BSE</i></div>${d}</section>`;
+}
+function newsBlock(news,co,docs){
+  const n = (news&&news.length) ? news.map(x=>
+    `<div class="nw"><a class="nwt" href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.headline)}</a>
+     <div class="nwm"><b>${esc(x.publisher||'')}</b> · ${dmy(x.published)}</div></div>`).join('')
+    : '<div class="nwm" style="padding:6px 0">No recent coverage from tracked publications.</div>';
+
+  const d = (docs&&docs.length) ? docs.map(x=>
+    `<div class="th"><div class="thn"><a href="${esc(x.pdf_url)}" target="_blank" rel="noopener">${esc((x.headline||'Transcript').slice(0,74))}</a></div>
+     <div class="thm">${dmy(x.filed_at)}${x.pages?' · '+x.pages+' pages':''}</div></div>`).join('')
+    : '<div class="thm">No transcripts indexed yet.</div>';
+
+  return `<section>
+    <div class="sech"><span>Coverage</span><i>headlines link to the publisher · documents as filed with BSE</i></div>
+    <div class="cols">
+      <div>${n}</div>
+      <div>
+        <div class="rkn" style="color:var(--mut2);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px">Earnings calls</div>
+        ${d}
+      </div>
+    </div></section>`;
+}
+
+/* ---------- boot ---------- */
+const code = new URLSearchParams(location.search).get('code');
+(code ? company(code) : home()).catch(e=>{
+  $('#main').innerHTML = '<div class="msg">Something went wrong loading this page.</div>';
+  console.error(e);
+});
+loadList();
+</script>
+</body>
+</html>
