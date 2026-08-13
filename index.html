@@ -102,10 +102,13 @@ h1{font-size:clamp(25px,3.2vw,33px);font-weight:500;letter-spacing:-.8px;line-he
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px 18px}
 .card.full{grid-column:1 / -1}
 section{margin:0}
-.sech{font-family:var(--sans);font-size:10px;letter-spacing:1.3px;text-transform:uppercase;
-      font-weight:600;color:var(--mut);padding-bottom:10px;margin-bottom:13px;
-      border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;
+.sech{font-family:var(--sans);font-size:13px;letter-spacing:.2px;font-weight:600;
+      color:var(--ink);padding:0 0 11px;margin:0 0 15px;
+      border-bottom:2px solid var(--ink);display:flex;justify-content:space-between;
       align-items:baseline;gap:12px;flex-wrap:wrap}
+.sech > span:first-child{position:relative;padding-left:11px}
+.sech > span:first-child::before{content:'';position:absolute;left:0;top:3px;bottom:2px;
+      width:3px;background:var(--gold);border-radius:2px}
 .sech i{font-style:normal;letter-spacing:.1px;text-transform:none;font-size:11px;
         color:var(--mut2);font-weight:400}
 
@@ -129,6 +132,7 @@ td:first-child{text-align:left;font-family:var(--serif);font-size:13.5px;padding
 td.dim{color:var(--mut2)} td.v{font-family:var(--sans);font-size:10.5px;font-weight:500}
 th.sep,td.sep{border-left:1px solid var(--line);padding-left:16px}
 tbody tr:hover td{background:var(--gold-soft)}
+tr.gaprow td{padding:0;height:9px;border-top:1px solid var(--line);background:none !important}
 
 .cols{display:grid;grid-template-columns:1fr;gap:0}
 
@@ -242,6 +246,30 @@ tbody tr:hover td{background:var(--gold-soft)}
 footer{margin-top:40px;border-top:1px solid var(--line);padding-top:13px;
        font-family:var(--sans);font-size:10.5px;color:var(--mut2);line-height:1.65}
 @media(max-width:1000px){.ratiogrid{grid-template-columns:1fr !important;gap:18px !important}}
+@media(max-width:640px){
+  .wrap{padding:0 14px 56px}
+  nav{gap:12px;padding:12px 0}
+  .brand{font-size:23px}
+  .searchwrap{max-width:none;order:3;width:100%}
+  .navlinks{order:2;margin-left:auto;width:auto;gap:14px}
+  .grid{gap:14px}
+  .card{padding:14px 14px 16px;border-radius:0;margin:0 -14px;border-left:none;border-right:none}
+  .chead{padding-bottom:18px;margin-bottom:18px}
+  h1{font-size:24px;letter-spacing:-.6px}
+  .desc{font-size:14px}
+  .mrow{grid-template-columns:1fr 1fr;gap:12px}
+  .mval{font-size:19px}
+  .snap{padding:12px 14px}
+  .rk{grid-template-columns:80px 1fr 56px;gap:8px}
+  .rkn{font-size:11px}
+  table{font-size:12px}
+  td,th{padding-left:12px}
+  td:first-child{font-size:12.5px}
+  .hometop{padding:30px 0 0}
+  .indgrid{grid-template-columns:1fr}
+  .cl2{grid-template-columns:1fr}
+  .sech{font-size:12.5px}
+}
 </style>
 </head>
 <body>
@@ -318,7 +346,7 @@ const qOrder = p => {
 let LIST = [], hi = -1;
 async function loadList(){
   if(LIST.length) return LIST;
-  const base='companies?select=scrip_code,company_name,nse_symbol,market_cap&or=(group_code.eq.A,group_code.eq.B)&order=market_cap.desc.nullslast';
+  const base='companies?select=scrip_code,company_name,nse_symbol,market_cap,group_code&or=(group_code.eq.A,group_code.eq.B,group_code.eq.T,group_code.eq.X,group_code.eq.XT,group_code.eq.M,group_code.eq.MT,group_code.eq.Z,group_code.eq.ZP)&order=market_cap.desc.nullslast';
   for(let off=0; off<4000; off+=1000){
     const part = await api(base+'&limit=1000&offset='+off);
     LIST = LIST.concat(part);
@@ -451,15 +479,16 @@ async function company(code){
   if(!co){ $('#main').innerHTML='<div class="msg">Company not found.</div>'; return; }
   document.title = co.company_name + ' — ResearchDesk';
 
-  const [[meta],[ups],[rat],res,shp,fin,news,docs] = await Promise.all([
+  const [[meta],[ups],[rat],res,shp,fin,news,docs,qfin] = await Promise.all([
     api(`company_meta?scrip_code=eq.${code}&select=*`),
     api(`company_upstox?scrip_code=eq.${code}&select=*`),
     api(`ratios?scrip_code=eq.${code}&select=*`),
     api(`results_snapshot?scrip_code=eq.${code}&select=*`),
     api(`shareholding?scrip_code=eq.${code}&filing_type=eq.quarterly&select=*&order=qtrid.desc&limit=20`),
-    api(`financials?scrip_code=eq.${code}&freq=eq.annual&select=statement,period,field,value`),
+    api(`financials?scrip_code=eq.${code}&freq=eq.annual&select=statement,period,field,value&order=period.desc&limit=400`),
     api(`news?scrip_code=eq.${code}&select=*&order=published.desc&limit=5`),
-    api(`transcripts?scrip_code=eq.${code}&select=headline,filed_at,pages,pdf_url&order=filed_at.desc&limit=6`)
+    api(`transcripts?scrip_code=eq.${code}&select=headline,filed_at,pages,pdf_url&order=filed_at.desc&limit=6`),
+    api(`financials?scrip_code=eq.${code}&freq=eq.quarterly&statement=eq.income&select=period,field,value&order=period.desc&limit=200`)
   ]);
 
   let peers = [], stat = null;
@@ -475,8 +504,8 @@ async function company(code){
     + '<div class="grid">'
     +   `<div class="card">${latest(res,rat)}</div>`
     +   `<div class="card">${own(shp)}</div>`
-    +   `<div class="card full">${ratios(rat,stat,peers,code)}</div>`
-    +   `<div class="card full">${quarterly(res)}</div>`
+    +   `<div class="card full">${ratios(rat,stat,peers,code,meta,ups)}</div>`
+    +   `<div class="card full">${quarterly(res,qfin)}</div>`
     +   `<div class="card full">${annual(fin)}</div>`
     +   `<div class="card">${newsOnly(news)}</div>`
     +   `<div class="card">${docsOnly(docs)}</div>`
@@ -614,7 +643,7 @@ function latest(res,rat){
     </div></section>`;
 }
 
-function ratios(rat,stat,peers,code){
+function ratios(rat,stat,peers,code,meta,ups){
   if(!rat) return '';
   const rows=[
     ['ROCE','roce','med_roce','pct',1],['ROE','roe','med_roe','pct',1],
@@ -627,6 +656,31 @@ function ratios(rat,stat,peers,code){
   ];
   const fmt=(v,k)=> v==null?'—': k==='pct'?pct(v):k==='day'?raw(v,1)+' d':raw(v,2);
   const lower=new Set(['debt_equity','debtor_days','cash_cycle']);
+
+  // valuation from BSE meta + Upstox key-ratios (which carries a sector value)
+  const U = {};
+  if(ups && Array.isArray(ups.ratios))
+    ups.ratios.forEach(x=>{ U[String(x.name).toUpperCase()] = x; });
+  const un = v => { const f = parseFloat(String(v).replace('%','')); return isNaN(f)?null:f; };
+  const val = [];
+  const push = (label, own, u) => {
+    const c = own!=null ? own : (u ? un(u.company_value) : null);
+    const m = u ? un(u.sector_value) : null;
+    if(c!=null) val.push([label, c, m]);
+  };
+  push('P/E',  meta ? (meta.con_pe ?? meta.pe) : null, U['P/E']);
+  push('P/B',  meta ? (meta.con_pb ?? meta.pb) : null, U['P/B']);
+  push('EV / EBITDA', null, U['EV/EBITDA']);
+  const valRows = val.map(([lab,c,m])=>{
+    let read='';
+    if(m!=null && m){
+      const gap = (c-m)/Math.abs(m);
+      read = Math.abs(gap)<0.08 ? '<span style="color:var(--mut2)">In line</span>'
+           : gap>0 ? '<span style="color:var(--amb)">Premium</span>'
+                   : '<span style="color:var(--grn)">Discount</span>';
+    }
+    return `<tr><td>${lab}</td><td>${raw(c)}</td><td class="dim">${m==null?'—':raw(m)}</td><td class="v">${read}</td></tr>`;
+  }).join('');
 
   const body = rows.map(([lab,f,mf,k])=>{
     const v=rat[f], m=mf&&stat?stat[mf]:null;
@@ -675,6 +729,8 @@ function ratios(rat,stat,peers,code){
     <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:28px" class="ratiogrid">
       <div class="scroll"><table>
         <tr><th>Metric</th><th>Company</th><th>Peer median</th><th style="width:74px">Read</th></tr>
+        ${valRows}
+        ${valRows?'<tr class="gaprow"><td colspan="4"></td></tr>':''}
         ${body}
       </table></div>
       <div>
@@ -684,23 +740,68 @@ function ratios(rat,stat,peers,code){
     </div></section>`;
 }
 
-function quarterly(res){
-  const q = res.filter(r=>r.period_type==='quarter').sort((a,b)=>qOrder(a.period)-qOrder(b.period));
-  const y = res.filter(r=>r.period_type==='annual');
-  if(!q.length) return '';
-  const cols = q.concat(y);
-  const row=(lab,f,fn)=>`<tr><td>${lab}</td>`+cols.map((c,i)=>
-    `<td class="${i>=q.length?'sep':''}">${c[f]==null?'—':fn(c[f])}</td>`).join('')+'</tr>';
+function quarterly(res, qfin){
+  // pivot quarterly income statement
+  const map = {};
+  (qfin||[]).forEach(r=>{ (map[r.period] = map[r.period] || {})[r.field] = r.value; });
+  let periods = Object.keys(map).sort().slice(-5);
+
+  // BSE snapshot gives EPS / Cash EPS keyed by labels like "Jun-26"
+  const snap = {};
+  (res||[]).filter(r=>r.period_type==='quarter').forEach(r=>{ snap[qOrder(r.period)] = r; });
+  const key = p => { const d=new Date(p); return d.getFullYear()*100 + (d.getMonth()+1); };
+
+  if(!periods.length){
+    // fall back to the snapshot alone
+    const q = (res||[]).filter(r=>r.period_type==='quarter').sort((x,y)=>qOrder(x.period)-qOrder(y.period));
+    const y = (res||[]).filter(r=>r.period_type==='annual');
+    if(!q.length) return '';
+    const cols = q.concat(y);
+    const row=(lab,f,fn)=>`<tr><td>${lab}</td>`+cols.map((c,i)=>
+      `<td class="${i>=q.length?'sep':''}">${c[f]==null?'—':fn(c[f])}</td>`).join('')+'</tr>';
+    return `<section><div class="sech"><span>Results</span><i>&#8377; crore</i></div>
+      <div class="scroll"><table>
+        <tr><th>&nbsp;</th>${cols.map((c,i)=>`<th class="${i>=q.length?'sep':''}">${esc(c.period)}</th>`).join('')}</tr>
+        ${row('Revenue','revenue',v=>Math.round(v).toLocaleString('en-IN'))}
+        ${row('Net profit','net_profit',v=>Math.round(v).toLocaleString('en-IN'))}
+        ${row('OPM %','opm',v=>raw(v))}
+        ${row('NPM %','npm',v=>raw(v))}
+        ${row('EPS &#8377;','eps',v=>raw(v))}
+      </table></div></section>`;
+  }
+
+  const cr1 = v => v==null ? '—' : Math.round(v/10000000).toLocaleString('en-IN');
+  const lab = p => {
+    const d = new Date(p);
+    return ['Mar','Jun','Sep','Dec'][Math.floor(d.getMonth()/3)] + " '" + String(d.getFullYear()).slice(2);
+  };
+  const get = (p,f) => map[p] ? map[p][f] : null;
+  const pctOf = (p,num,den) => {
+    const a = get(p,num), b = get(p,den);
+    return (a==null||!b) ? null : a/b*100;
+  };
+  const snapFor = p => snap[key(p)] || null;
+
+  const row = (label, fn) =>
+    `<tr><td>${label}</td>${periods.map(p=>`<td>${fn(p)}</td>`).join('')}</tr>`;
+
   return `<section>
-    <div class="sech"><span>Results</span><i>₹ crore · history builds forward each quarter</i></div>
+    <div class="sech"><span>Quarterly results</span><i>&#8377; crore &middot; consolidated where reported</i></div>
     <div class="scroll"><table>
-      <tr><th>&nbsp;</th>${cols.map((c,i)=>`<th class="${i>=q.length?'sep':''}">${esc(c.period)}</th>`).join('')}</tr>
-      ${row('Revenue','revenue',v=>Math.round(v).toLocaleString('en-IN'))}
-      ${row('Net profit','net_profit',v=>Math.round(v).toLocaleString('en-IN'))}
-      ${row('OPM %','opm',v=>raw(v))}
-      ${row('NPM %','npm',v=>raw(v))}
-      ${row('EPS ₹','eps',v=>raw(v))}
-      ${row('Cash EPS ₹','cash_eps',v=>raw(v))}
+      <tr><th>&nbsp;</th>${periods.map(p=>`<th>${lab(p)}</th>`).join('')}</tr>
+      ${row('Revenue', p=>cr1(get(p,'Total Revenue')))}
+      ${row('Operating profit', p=>cr1(get(p,'EBIT')))}
+      ${row('Net profit', p=>cr1(get(p,'Net Income')))}
+      ${row('OPM %', p=>{const v=pctOf(p,'EBIT','Total Revenue'); return v==null?'—':raw(v);})}
+      ${row('NPM %', p=>{const v=pctOf(p,'Net Income','Total Revenue'); return v==null?'—':raw(v);})}
+      ${row('EPS &#8377;', p=>{
+          const s0 = snapFor(p);
+          if(s0 && s0.eps!=null) return raw(s0.eps);
+          const v = get(p,'Diluted EPS') ?? get(p,'Basic EPS');
+          return v==null?'—':raw(v);
+       })}
+      ${row('Interest', p=>cr1(get(p,'Interest Expense')))}
+      ${row('Tax', p=>cr1(get(p,'Tax Provision')))}
     </table></div></section>`;
 }
 
