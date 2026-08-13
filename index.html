@@ -426,9 +426,14 @@ function spark(vals, w, h){
 }
 
 /* ---------- search ---------- */
-let LIST = [], hi = -1, LISTREADY = false;
-async function loadList(){
-  if(LISTREADY) return LIST;
+let LIST = [], hi = -1, LISTREADY = false, LISTP = null;
+function loadList(){
+  if(LISTREADY) return Promise.resolve(LIST);
+  if(LISTP) return LISTP;
+  LISTP = _loadList();
+  return LISTP;
+}
+async function _loadList(){
   LIST = [];
   const base='companies?select=scrip_code,company_name,nse_symbol,market_cap,group_code&or=(group_code.eq.A,group_code.eq.B,group_code.eq.T,group_code.eq.X,group_code.eq.XT,group_code.eq.M,group_code.eq.MT,group_code.eq.Z,group_code.eq.ZP)&order=market_cap.desc.nullslast';
   for(let off=0; off<4000; off+=1000){
@@ -866,8 +871,8 @@ function quarterly(res, qfin){
         <tr><th>&nbsp;</th>${cols.map((c,i)=>`<th class="${i>=q.length?'sep':''}">${esc(c.period)}</th>`).join('')}</tr>
         ${row('Revenue','revenue',v=>Math.round(v).toLocaleString('en-IN'))}
         ${row('Net profit','net_profit',v=>Math.round(v).toLocaleString('en-IN'))}
-        ${row('OPM %','opm',v=>raw(v))}
-        ${row('NPM %','npm',v=>raw(v))}
+        ${row('OPM %','opm',v=>(v>200||v<-200)?'—':raw(v))}
+        ${row('NPM %','npm',v=>(v>200||v<-200)?'—':raw(v))}
         ${row('EPS &#8377;','eps',v=>raw(v))}
       </table></div></section>`;
   }
@@ -880,7 +885,9 @@ function quarterly(res, qfin){
   const get = (p,f) => map[p] ? map[p][f] : null;
   const pctOf = (p,num,den) => {
     const a = get(p,num), b = get(p,den);
-    return (a==null||!b) ? null : a/b*100;
+    if(a==null || !b || b<=0) return null;
+    const v = a/b*100;
+    return (v > 200 || v < -200) ? null : v;   // ratio is meaningless at that scale
   };
   const snapFor = p => snap[key(p)] || null;
 
