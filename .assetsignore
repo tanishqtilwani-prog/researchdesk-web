@@ -1,0 +1,5 @@
+.git
+.wrangler
+wrangler.toml
+worker.js
+node_modules
