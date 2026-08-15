@@ -4,14 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ResearchDesk — Indian equity research</title>
+<link rel="canonical" id="canon" href="https://researchdesk.co.in/">
+<meta property="og:site_name" content="ResearchDesk">
+<meta property="og:type" content="website">
 <meta name="description" content="Company research for 2,300 Indian listed companies. Ratios benchmarked against peers, ownership history, pledge tracking and earnings call transcripts.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%2316233a'/%3E%3Ctext x='50' y='68' font-size='58' font-family='Georgia' fill='%23b0801f' text-anchor='middle'%3ER%3C/text%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root, [data-theme="light"]{
-  --bg:#fbfaf7; --panel:#ffffff; --ink:#16233a; --ink2:#3c4859; --mut:#6f7789;
-  --mut2:#9aa1af; --line:#e7e3da; --line2:#f1eee7;
-  --gold:#b0801f; --gold-soft:#faf5e8;
+  --bg:#ffffff; --panel:#ffffff; --ink:#16233a; --ink2:#3c4859; --mut:#6f7789;
+  --mut2:#9aa1af; --line:#e6e8ec; --line2:#f2f3f6;
+  --gold:#b0801f; --gold-soft:#fbf6ea;
   --red:#a8352f; --grn:#1f6b4a; --amb:#8a6a1a; --accent:#16233a;
   --serif:'Newsreader',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
   --mono:'JetBrains Mono',ui-monospace,monospace;
@@ -21,7 +24,7 @@
   --h-amber-bg:#FAEEDA; --h-amber-fg:#633806; --h-amber-sub:#854F0B;
   --h-purple-bg:#EEEDFE; --h-purple-fg:#3C3489; --h-purple-sub:#534AB7;
   --h-coral-bg:#FAECE7; --h-coral-fg:#712B13; --h-coral-sub:#993C1D;
-  --h-gray-bg:#F1EFE8; --h-gray-fg:#2C2C2A; --h-gray-sub:#5F5E5A;
+  --h-gray-bg:#F2F3F5; --h-gray-fg:#2C2C2A; --h-gray-sub:#5F5E5A;
 }
 [data-theme="dark"]{
   --h-blue-bg:#0C447C; --h-blue-fg:#B5D4F4; --h-blue-sub:#85B7EB;
@@ -71,6 +74,20 @@ nav{border-bottom:1px solid var(--line);margin-bottom:24px;padding:15px 0;
 .stub{padding:80px 0;max-width:56ch}
 .stub h2{font-size:30px;font-weight:500;letter-spacing:-.9px;margin-bottom:14px}
 .stub p{color:var(--ink2);font-size:15.5px;line-height:1.72;margin-bottom:12px}
+.mbtn{display:none;border:1px solid var(--line);background:var(--panel);color:var(--mut);
+      width:32px;height:32px;border-radius:var(--r);cursor:pointer;align-items:center;
+      justify-content:center;flex:none;padding:0}
+.mbtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.drawer{position:fixed;inset:0;background:rgba(10,17,34,.42);z-index:90;display:none}
+.drawer.open{display:block}
+.drawer nav{position:absolute;top:0;right:0;bottom:0;width:min(74vw,268px);background:var(--panel);
+      border-left:1px solid var(--line);flex-direction:column;align-items:stretch;
+      gap:0;padding:18px 0;position:fixed}
+.drawer a{display:block;padding:13px 22px;font-family:var(--sans);font-size:15px;
+      color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line2)}
+.drawer a:hover{background:var(--gold-soft);color:var(--gold)}
+.drawer .dhead{font-family:var(--sans);font-size:10px;letter-spacing:1.3px;text-transform:uppercase;
+      color:var(--mut2);padding:0 22px 12px}
 .tbtn{border:1px solid var(--line);background:var(--panel);color:var(--mut);
       width:32px;height:32px;border-radius:var(--r);cursor:pointer;display:flex;
       align-items:center;justify-content:center;flex:none}
@@ -117,7 +134,7 @@ h1{font-size:clamp(25px,3.2vw,33px);font-weight:500;letter-spacing:-.8px;line-he
 /* grid */
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
 @media(max-width:1000px){.grid{grid-template-columns:1fr}}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+.card{background:var(--panel);border:1px solid var(--line);box-shadow:0 1px 2px rgba(20,30,50,.04);border-radius:var(--r);
       padding:0 0 17px;overflow:hidden}
 .card > section > *:not(.sech){margin-left:18px;margin-right:18px}
 .card > section > .scroll{margin-left:18px;margin-right:18px}
@@ -312,12 +329,15 @@ tr.gaprow td{padding:0;height:9px;border-top:1px solid var(--line);background:no
 footer{margin-top:40px;border-top:1px solid var(--line);padding-top:13px;
        font-family:var(--sans);font-size:10.5px;color:var(--mut2);line-height:1.65}
 @media(max-width:1000px){.ratiogrid{grid-template-columns:1fr !important;gap:18px !important}}
-@media(max-width:640px){
+@media(max-width:760px){
   .wrap{padding:0 14px 56px}
-  nav{gap:12px;padding:12px 0}
-  .brand{font-size:23px}
-  .searchwrap{max-width:none;order:3;width:100%}
-  .navlinks{order:2;margin-left:auto;width:auto;gap:14px}
+  nav{gap:10px;padding:12px 0;flex-wrap:nowrap}
+  .brand{font-size:21px}
+  .searchwrap{max-width:none;order:3;width:100%;flex:1 1 100%}
+  .searchwrap #q{padding:12px 12px 12px 38px;font-size:15px;border-radius:8px}
+  .searchwrap .sicon{left:13px;width:15px;height:15px}
+  .navlinks{display:none}
+  .mbtn{display:flex}
   .grid{gap:14px}
   .card{padding:14px 14px 16px;border-radius:0;margin:0 -14px;border-left:none;border-right:none}
   .chead{padding-bottom:18px;margin-bottom:18px}
@@ -335,6 +355,10 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:13px;
   .indgrid{grid-template-columns:1fr}
   .cl2{grid-template-columns:1fr}
   .sech{font-size:12.5px}
+  .filters{grid-template-columns:1fr 1fr;gap:11px;padding:13px 14px}
+  .stab{gap:5px}
+  .stab button{font-size:12px;padding:5px 11px}
+  .pagehead{padding:18px 0 16px}
 }
 </style>
 </head>
@@ -342,20 +366,31 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:13px;
 <div class="wrap">
 
 <nav>
-  <a class="brand" href="index.html">Research<b>Desk</b></a>
+  <a class="brand" href="/">Research<b>Desk</b></a>
   <div class="searchwrap">
     <svg class="sicon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input id="q" placeholder="Company name or symbol" autocomplete="off" spellcheck="false">
     <div id="sug"></div>
   </div>
   <div class="navlinks">
-    <a href="?page=sectors">Sectors</a>
-    <a href="?page=screens">Screens</a>
+    <a href="/sectors">Sectors</a>
+    <a href="/screens">Screens</a>
   </div>
   <button class="tbtn" id="tbtn" title="Switch theme" aria-label="Switch theme">
     <svg id="ticon" viewBox="0 0 24 24"></svg>
   </button>
+  <button class="mbtn" id="mbtn" aria-label="Menu">
+    <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
 </nav>
+<div class="drawer" id="drawer">
+  <nav>
+    <div class="dhead">ResearchDesk</div>
+    <a href="/">Home</a>
+    <a href="/sectors">Sectors</a>
+    <a href="/screens">Screens</a>
+  </nav>
+</div>
 
 <main id="main"><div class="msg">Loading…</div></main>
 
@@ -377,6 +412,14 @@ async function api(path){
   catch(e){ return []; }
 }
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function slug(name, code){
+  const t = String(name||'').toLowerCase()
+    .replace(/&/g,' and ').replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'').slice(0,52).replace(/-+$/,'');
+  return `/company/${t?t+'-':''}${code}`;
+}
+const sectorHref = n => '/sector/' + encodeURIComponent(String(n).replace(/\s+/g,'-'));
 
 /* ---------- formatting ---------- */
 function cr(v){
@@ -466,7 +509,7 @@ function search(v){
   }
   renderSug(starts.concat(has).slice(0,9));
 }
-function go(code){ location.search = '?code='+code; }
+function go(code){ const c=LIST.find(x=>x.scrip_code===code); location.href = slug(c&&c.company_name, code); }
 $('#q').addEventListener('input', e=>{ loadList().then(()=>search(e.target.value)); });
 $('#q').addEventListener('keydown', e=>{
   const box=$('#sug'), items=[...box.querySelectorAll('div')];
@@ -516,7 +559,7 @@ async function home(){
     }
     const el = document.getElementById('chips');
     if(el) el.innerHTML = pick.map(c=>
-      `<a class="chip" href="?code=${c.scrip_code}">${esc(c.company_name.replace(/ Ltd\.?$/,''))}</a>`).join('');
+      `<a class="chip" href="${slug(c.company_name,c.scrip_code)}">${esc(c.company_name.replace(/ Ltd\.?$/,''))}</a>`).join('');
   });
 
   industries();
@@ -556,7 +599,7 @@ async function showIndustry(i, el){
                   .sort((a,b)=>(b.market_cap||0)-(a.market_cap||0)).slice(0,60);
   box.innerHTML = `<h4>${esc(name)} — ${codes.length} companies</h4>
     <div class="cl2">${cos.map(c=>
-      `<a class="co2" href="?code=${c.scrip_code}"><span>${esc(c.company_name.replace(/ Ltd\.?$/,''))}</span>
+      `<a class="co2" href="${slug(c.company_name,c.scrip_code)}"><span>${esc(c.company_name.replace(/ Ltd\.?$/,''))}</span>
        <small>${c.market_cap?Math.round(c.market_cap).toLocaleString('en-IN'):''}</small></a>`).join('')}</div>
     ${cos.length<codes.length?`<div class="thm" style="padding-top:10px">Showing the largest ${cos.length} by market cap.</div>`:''}`;
   box.scrollIntoView({behavior:'smooth', block:'nearest'});
@@ -566,7 +609,19 @@ async function showIndustry(i, el){
 async function company(code){
   const [co] = await api(`companies?scrip_code=eq.${code}&select=*`);
   if(!co){ $('#main').innerHTML='<div class="msg">Company not found.</div>'; return; }
-  document.title = co.company_name + ' — ResearchDesk';
+  document.title = co.company_name + ' — financials, ratios and ownership | ResearchDesk';
+  if(co.isin) fetch('/api/ltp?isin='+encodeURIComponent(co.isin))
+    .then(r=>r.json()).then(d=>{
+      if(d && d.ltp!=null){
+        const el = document.getElementById('ltp');
+        if(el) el.innerHTML = ' &nbsp;·&nbsp; <b style="color:var(--ink);font-weight:500">₹'+
+          Number(d.ltp).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+'</b>';
+      }
+    }).catch(()=>{});
+  const cn = document.getElementById('canon');
+  if(cn) cn.href = 'https://researchdesk.co.in' + slug(co.company_name, co.scrip_code);
+  const md = document.querySelector('meta[name="description"]');
+  if(md) md.content = `${co.company_name}: quarterly results, ratios against peers, promoter holding and pledge, and earnings call transcripts — built from exchange filings.`;
 
   const [[meta],[ups],[rat],res,shp,fin,news,docs,qfin] = await Promise.all([
     api(`company_meta?scrip_code=eq.${code}&select=*`),
@@ -1006,6 +1061,11 @@ function paintTheme(){
 })();
 document.addEventListener('DOMContentLoaded', ()=>{
   paintTheme();
+  const mb = document.getElementById('mbtn'), dr = document.getElementById('drawer');
+  if(mb && dr){
+    mb.onclick = ()=> dr.classList.add('open');
+    dr.onclick = e => { if(e.target === dr) dr.classList.remove('open'); };
+  }
   const b = document.getElementById('tbtn');
   if(b) b.onclick = ()=>{
     const next = curTheme()==='dark' ? 'light' : 'dark';
@@ -1040,7 +1100,7 @@ async function loadStats(){
 let SECIND = null;
 async function sectorsPage(sel){
   document.title = 'Sectors — ResearchDesk';
-  document.querySelectorAll('.navlinks a').forEach(a=>a.classList.toggle('on', a.getAttribute('href')==='?page=sectors'));
+  document.querySelectorAll('.navlinks a').forEach(a=>a.classList.toggle('on', a.getAttribute('href')==='/sectors'));
   $('#main').innerHTML = `
     <div class="pagehead"><div class="ptag">Sectors</div>
       <h2>Where the money is being made</h2>
@@ -1074,7 +1134,7 @@ async function sectorsPage(sel){
     body = `<div class="tbl"><table>
       <tr><th>Industry</th><th>Companies</th><th>Combined mcap</th><th>ROCE</th><th>ROE</th>
           <th>OPM</th><th>Debt / eq</th><th>CFO / PAT</th></tr>
-      ${rows.map(r=>`<tr><td><a href="?page=sectors&s=${encodeURIComponent(r.name)}">${esc(r.name)}</a></td>
+      ${rows.map(r=>`<tr><td><a href="${sectorHref(r.name)}">${esc(r.name)}</a></td>
         <td>${r.n}</td><td>${r.mcap?cr(r.mcap):'—'}</td>
         <td>${r.roce==null?'—':pct(r.roce)}</td><td>${r.roe==null?'—':pct(r.roe)}</td>
         <td>${r.opm==null?'—':pct(r.opm)}</td><td>${r.de==null?'—':raw(r.de)}</td>
@@ -1099,7 +1159,7 @@ async function sectorsPage(sel){
     <div class="tbl"><table>
       <tr><th>Company</th><th>ROCE</th><th>ROE</th><th>OPM</th><th>Debt / eq</th><th>CFO / PAT</th><th>Revenue</th></tr>
       ${sorted.slice(0,60).map(r=>{const c=byCode[r.scrip_code]||{};
-        return `<tr><td><a href="?code=${r.scrip_code}">${esc((c.company_name||r.scrip_code).replace(/ Ltd\.?$/,''))}</a></td>
+        return `<tr><td><a href="${slug(c.company_name,r.scrip_code)}">${esc((c.company_name||r.scrip_code).replace(/ Ltd\.?$/,''))}</a></td>
         <td>${r.roce==null?'—':pct(r.roce)}</td><td>${r.roe==null?'—':pct(r.roe)}</td>
         <td>${r.opm==null?'—':pct(r.opm)}</td><td>${r.debt_equity==null?'—':raw(r.debt_equity)}</td>
         <td>${r.cfo_pat==null?'—':raw(r.cfo_pat)}</td><td>${r.revenue?cr(r.revenue/10000000):'—'}</td></tr>`;}).join('')}
@@ -1108,7 +1168,7 @@ async function sectorsPage(sel){
   document.getElementById('sectorbody').innerHTML = tabs + body;
   document.querySelectorAll('.stab button').forEach(b=> b.onclick = ()=>{
     const v = b.dataset.s;
-    history.pushState({}, '', v ? `?page=sectors&s=${encodeURIComponent(v)}` : '?page=sectors');
+    history.pushState({}, '', v ? sectorHref(v) : '/sectors');
     sectorsPage(v||null);
   });
   if(sel) sectorThemes(sel, (SECIND.find(([n])=>n===sel)||[null,[]])[1]);
@@ -1157,7 +1217,7 @@ const SAVED = {
 };
 async function screensPage(preset){
   document.title = 'Screens — ResearchDesk';
-  document.querySelectorAll('.navlinks a').forEach(a=>a.classList.toggle('on', a.getAttribute('href')==='?page=screens'));
+  document.querySelectorAll('.navlinks a').forEach(a=>a.classList.toggle('on', a.getAttribute('href')==='/screens'));
   $('#main').innerHTML = `
     <div class="pagehead"><div class="ptag">Screens</div>
       <h2>Filter the whole market</h2>
@@ -1236,7 +1296,7 @@ async function screensPage(preset){
       ${out.slice(0,80).map(r=>{
         const c=byCode[r.scrip_code]||{}, sh=shpRows[r.scrip_code];
         const e = sh ? sh.promoter_encumbered_pct : null;
-        return `<tr><td><a href="?code=${r.scrip_code}">${esc((c.company_name||'').replace(/ Ltd\.?$/,''))}</a></td>
+        return `<tr><td><a href="${slug(c.company_name,r.scrip_code)}">${esc((c.company_name||'').replace(/ Ltd\.?$/,''))}</a></td>
           <td>${c.market_cap?cr(c.market_cap):'—'}</td>
           <td>${r.roce==null?'—':pct(r.roce)}</td><td>${r.roe==null?'—':pct(r.roe)}</td>
           <td>${r.opm==null?'—':pct(r.opm)}</td><td>${r.debt_equity==null?'—':raw(r.debt_equity)}</td>
@@ -1267,9 +1327,15 @@ async function screensPage(preset){
 
 /* ---------- boot ---------- */
 const _p = new URLSearchParams(location.search);
-const code = _p.get('code'), pageArg = _p.get('page');
+const _path = location.pathname.replace(/\/+$/,'');
+const _m = _path.match(/^\/company\/(?:.*-)?(\d{6})$/);
+const _sm = _path.match(/^\/sector\/(.+)$/);
+const code = _m ? _m[1] : _p.get('code');
+const pageArg = _sm ? 'sectors' : (_path === '/sectors' ? 'sectors'
+              : _path === '/screens' ? 'screens' : _p.get('page'));
+const _sector = _sm ? decodeURIComponent(_sm[1]).replace(/-/g,' ') : _p.get('s');
 (code ? company(code)
-      : pageArg === 'sectors' ? sectorsPage(_p.get('s'))
+      : pageArg === 'sectors' ? sectorsPage(_sector)
       : pageArg === 'screens' ? screensPage(_p.get('q'))
       : home()).catch(e=>{
   $('#main').innerHTML = '<div class="msg">Something went wrong loading this page.</div>';
