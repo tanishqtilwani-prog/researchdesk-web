@@ -55,8 +55,9 @@ export default {
       path === "/screens";
 
     if (isAppRoute) {
-      const res = await env.ASSETS.fetch(new Request(url.origin + "/index.html", request));
-      return new Response(res.body, {
+      const res = await env.ASSETS.fetch(new URL("/index.html", url.origin));
+      const body = await res.text();
+      return new Response(body, {
         status: 200,
         headers: {
           "content-type": "text/html; charset=utf-8",
