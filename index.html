@@ -64,7 +64,7 @@ nav{border-bottom:1px solid var(--line);margin-bottom:24px;padding:15px 0;
     position:sticky;top:0;background:var(--bg);z-index:60}
 .brand{font-size:29px;font-weight:500;letter-spacing:-.9px;text-decoration:none;
         white-space:nowrap;line-height:1;display:flex;align-items:center;gap:9px}
-.brand b{font-weight:600;color:var(--gold)}
+.brand b{font-weight:600;color:var(--gold);margin-left:-.13em}
 .blogo{width:30px;height:30px;flex:none}
 .navlinks{display:flex;gap:18px;margin-left:auto}
 .navlinks a{font-family:var(--sans);font-size:12.5px;color:var(--mut);text-decoration:none;
@@ -720,6 +720,7 @@ function head(co,meta,ups,rat,shp,res){
   <h1>${esc(co.company_name)}</h1>
   <div class="ids">${esc(co.nse_symbol||'')} &nbsp;·&nbsp; BSE ${esc(co.scrip_code)} &nbsp;·&nbsp; ${esc(co.isin||'')}${
     co.market_cap? ' &nbsp;·&nbsp; '+cr(co.market_cap)+' mcap':''}</div>
+  <div id="ltp" class="ltpline"></div>
   <div class="tags">${tags.join('')}</div>
   ${ups&&ups.company_profile ? descBlock(ups.company_profile):''}
   ${path ? `<div class="sub">${path}</div>`:''}
