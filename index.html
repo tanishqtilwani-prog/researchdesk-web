@@ -829,10 +829,11 @@ function ratios(rat,stat,peers,code,meta,ups){
   const lower=new Set(['debt_equity','debtor_days','cash_cycle']);
 
   // valuation computed from our own data, benchmarked against our own medians
+  const nz0 = v => (v==null || v===0) ? null : v;
   const val = [
-    ['P/E',        rat.pe,        stat ? stat.med_pe : null],
-    ['P/B',        rat.pb,        stat ? stat.med_pb : null],
-    ['EV / EBITDA',rat.ev_ebitda, stat ? stat.med_ev_ebitda : null],
+    ['P/E',        rat.pe ?? nz0(meta && (meta.con_pe ?? meta.pe)), stat ? stat.med_pe : null],
+    ['P/B',        rat.pb ?? nz0(meta && (meta.con_pb ?? meta.pb)), stat ? stat.med_pb : null],
+    ['EV / EBITDA',rat.ev_ebitda,                                    stat ? stat.med_ev_ebitda : null],
   ].filter(x => x[1] != null);
   const valRows = val.map(([lab,c,m])=>{
     let read='';
