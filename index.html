@@ -631,7 +631,7 @@ async function company(code){
   const md = document.querySelector('meta[name="description"]');
   if(md) md.content = `${co.company_name}: quarterly results, ratios against peers, promoter holding and pledge, and earnings call transcripts — built from exchange filings.`;
 
-  const [[meta],[ups],[rat],res,shp,fin,news,docs,qfin] = await Promise.all([
+  const [[meta],[ups],[rat],res,shp,fin,news,docs,qfin,qbal] = await Promise.all([
     api(`company_meta?scrip_code=eq.${code}&select=*`),
     api(`company_upstox?scrip_code=eq.${code}&select=*`),
     api(`ratios?scrip_code=eq.${code}&select=*`),
@@ -640,13 +640,14 @@ async function company(code){
     api(`financials?scrip_code=eq.${code}&freq=eq.annual&select=statement,period,field,value&order=period.desc&limit=400`),
     api(`news?scrip_code=eq.${code}&select=*&order=published.desc&limit=5`),
     api(`transcripts?scrip_code=eq.${code}&select=headline,filed_at,pages,pdf_url&order=filed_at.desc&limit=6`),
-    api(`financials?scrip_code=eq.${code}&freq=eq.quarterly&statement=eq.income&select=period,field,value&order=period.desc&limit=200`)
+    api(`financials?scrip_code=eq.${code}&freq=eq.quarterly&statement=eq.income&select=period,field,value&order=period.desc&limit=200`),
+    api(`financials?scrip_code=eq.${code}&freq=eq.quarterly&statement=eq.balance&select=period,field,value&order=period.desc&limit=200`)
   ]);
 
   let peers = [], stat = null;
   if(rat && rat.peer_group){
     [peers,[stat]] = await Promise.all([
-      api(`ratios?peer_group=eq.${encodeURIComponent(rat.peer_group)}&select=scrip_code,roce,roe,debt_equity,cfo_pat,current_ratio`),
+      api(`ratios?peer_group=eq.${encodeURIComponent(rat.peer_group)}&select=scrip_code,roce,roe,debt_equity,cfo_pat,current_ratio,pe,pb,ev_ebitda`),
       api(`sector_stats?peer_group=eq.${encodeURIComponent(rat.peer_group)}&select=*`)
     ]);
   }
@@ -670,6 +671,7 @@ async function company(code){
     +   `<div class="card h-blue">${own(shp)}</div>`
     +   `<div class="card full h-teal">${ratios(rat,stat,peers,code,meta,ups)}</div>`
     +   `<div class="card full h-amber">${quarterly(res,qfin)}</div>`
+    +   `<div class="card full h-blue">${halfBalance(qbal)}</div>`
     +   `<div class="card full h-gray">${annual(fin)}</div>`
     +   `<div class="card h-coral">${newsOnly(news)}</div>`
     +   `<div class="card h-purple">${docsOnly(docs)}</div>`
@@ -702,11 +704,9 @@ function head(co,meta,ups,rat,shp,res){
   const path = meta ? [meta.industry_new,meta.igroup,meta.isubgroup].filter(Boolean).join(' &nbsp;›&nbsp; ') : '';
   const l = shp&&shp[0], q = (res||[]).filter(r=>r.period_type==='quarter').sort((a,b)=>qOrder(b.period)-qOrder(a.period))[0];
   const sr = (a,b)=>`<div class="snaprow"><span>${a}</span><span>${b}</span></div>`;
-  const uu = {};
-  if(ups && Array.isArray(ups.ratios)) ups.ratios.forEach(x=>{ uu[String(x.name).toUpperCase()] = x; });
-  const un2 = v => { const f = parseFloat(String(v).replace('%','')); return isNaN(f)?null:f; };
-  const pe = (meta && (meta.con_pe ?? meta.pe)) ?? (uu['P/E'] ? un2(uu['P/E'].company_value) : null);
-  const pb = (meta && (meta.con_pb ?? meta.pb)) ?? (uu['P/B'] ? un2(uu['P/B'].company_value) : null);
+  const nz = v => (v==null || v===0) ? null : v;
+  const pe = (rat && rat.pe) ?? nz(meta && (meta.con_pe ?? meta.pe));
+  const pb = (rat && rat.pb) ?? nz(meta && (meta.con_pb ?? meta.pb));
   const snap = `<div class="snap">
     ${sr('Market cap', co.market_cap?cr(co.market_cap):'—')}
     ${pe!=null?sr('P / E', raw(pe)):''}
@@ -828,20 +828,12 @@ function ratios(rat,stat,peers,code,meta,ups){
   const fmt=(v,k)=> v==null?'—': k==='pct'?pct(v):k==='day'?raw(v,1)+' d':raw(v,2);
   const lower=new Set(['debt_equity','debtor_days','cash_cycle']);
 
-  // valuation from BSE meta + Upstox key-ratios (which carries a sector value)
-  const U = {};
-  if(ups && Array.isArray(ups.ratios))
-    ups.ratios.forEach(x=>{ U[String(x.name).toUpperCase()] = x; });
-  const un = v => { const f = parseFloat(String(v).replace('%','')); return isNaN(f)?null:f; };
-  const val = [];
-  const push = (label, own, u) => {
-    const c = own!=null ? own : (u ? un(u.company_value) : null);
-    const m = u ? un(u.sector_value) : null;
-    if(c!=null) val.push([label, c, m]);
-  };
-  push('P/E',  meta ? (meta.con_pe ?? meta.pe) : null, U['P/E']);
-  push('P/B',  meta ? (meta.con_pb ?? meta.pb) : null, U['P/B']);
-  push('EV / EBITDA', null, U['EV/EBITDA']);
+  // valuation computed from our own data, benchmarked against our own medians
+  const val = [
+    ['P/E',        rat.pe,        stat ? stat.med_pe : null],
+    ['P/B',        rat.pb,        stat ? stat.med_pb : null],
+    ['EV / EBITDA',rat.ev_ebitda, stat ? stat.med_ev_ebitda : null],
+  ].filter(x => x[1] != null);
   const valRows = val.map(([lab,c,m])=>{
     let read='';
     if(m!=null && m){
@@ -870,7 +862,7 @@ function ratios(rat,stat,peers,code,meta,ups){
   let ranks='';
   if(peers&&peers.length>=4){
     const defs=[['ROCE','roce',false],['ROE','roe',false],['Debt / equity','debt_equity',true],
-                ['CFO / PAT','cfo_pat',false],['Current ratio','current_ratio',false]];
+                ['CFO / PAT','cfo_pat',false],['P/E','pe',true]];
     ranks = defs.map(([lab,f,asc])=>{
       const vals=peers.filter(p=>p[f]!=null).map(p=>({c:p.scrip_code,v:+p[f]}));
       if(vals.length<4) return '';
@@ -981,6 +973,39 @@ function quarterly(res, qfin){
     </table></div></section>`;
 }
 
+function halfBalance(qbal){
+  if(!qbal || !qbal.length) return '';
+  const map = {};
+  qbal.forEach(r=>{ (map[r.period] = map[r.period]||{})[r.field] = r.value; });
+  // keep only periods that actually carry a balance sheet
+  const periods = Object.keys(map)
+    .filter(p => map[p]['Total Assets'] != null)
+    .sort().slice(-4);
+  if(periods.length < 2) return '';
+  const lab = p => { const d=new Date(p);
+    return ['Mar','Jun','Sep','Dec'][Math.floor(d.getMonth()/3)] + " '" + String(d.getFullYear()).slice(2); };
+  const cr1 = v => v==null ? '—' : Math.round(v/10000000).toLocaleString('en-IN');
+  const F = [['Total assets','Total Assets'],['Equity','Stockholders Equity'],
+             ['Total debt','Total Debt'],['Cash','Cash And Cash Equivalents'],
+             ['Inventory','Inventory'],['Receivables','Accounts Receivable'],
+             ['Payables','Accounts Payable'],['Working capital','Working Capital']];
+  const body = F.map(([label,f])=>{
+    if(!periods.some(p=>map[p][f]!=null)) return '';
+    const ser = periods.map(p=>map[p][f]);
+    return `<tr><td>${label}</td>${periods.map(p=>`<td>${cr1(map[p][f])}</td>`).join('')}` +
+           `<td class="sep" style="text-align:right">${spark(ser)}</td></tr>`;
+  }).join('');
+  if(!body) return '';
+  return `<section>
+    <div class="sech"><span>Balance sheet</span><i>&#8377; crore · reported half-yearly</i></div>
+    <div class="scroll"><table>
+      <tr><th>&nbsp;</th>${periods.map(p=>`<th>${lab(p)}</th>`).join('')}<th class="sep" style="width:76px">Trend</th></tr>
+      ${body}
+    </table></div>
+    <div class="thm" style="padding:10px 0 0">Indian companies file a full balance sheet twice a year, so these are half-yearly rather than quarterly.</div>
+  </section>`;
+}
+
 function annual(fin){
   if(!fin||!fin.length) return '';
   const map={};
@@ -988,15 +1013,32 @@ function annual(fin){
   const periods = Object.keys(map).sort().slice(-5);
   if(periods.length<2) return '';
   const F=[['Revenue','Total Revenue'],['Operating profit','EBIT'],['Net profit','Net Income'],
+           ['EPS','__eps'],['OPM %','__opm'],['NPM %','__npm'],
            ['Total assets','Total Assets'],['Total debt','Total Debt'],['Equity','Stockholders Equity'],
            ['Operating cash flow','Operating Cash Flow'],['Free cash flow','Free Cash Flow'],
            ['Shares outstanding','Ordinary Shares Number']];
+  const derived = (p, f) => {
+    const w = map[p] || {};
+    if(f === '__eps'){
+      const v = w['Diluted EPS'] ?? w['Basic EPS'];
+      if(v != null) return v;
+      const ni = w['Net Income'], sh = w['Ordinary Shares Number'];
+      return (ni != null && sh) ? ni/sh : null;
+    }
+    const rev = w['Total Revenue'];
+    if(!rev) return null;
+    if(f === '__opm') return w['EBIT'] != null ? w['EBIT']/rev*100 : null;
+    if(f === '__npm') return w['Net Income'] != null ? w['Net Income']/rev*100 : null;
+    return null;
+  };
   const body = F.map(([lab,f])=>{
-    if(!periods.some(p=>map[p][f]!=null)) return '';
-    return `<tr><td>${lab}</td>`+periods.map(p=>{
-      const v=map[p][f];
+    const isDerived = f.startsWith('__');
+    const vals = periods.map(p => isDerived ? derived(p,f) : map[p][f]);
+    if(!vals.some(v => v != null)) return '';
+    return `<tr><td>${lab}</td>`+vals.map(v=>{
       if(v==null) return '<td>—</td>';
       if(f==='Ordinary Shares Number') return `<td>${(v/10000000).toFixed(1)} Cr</td>`;
+      if(isDerived) return `<td>${raw(v)}</td>`;
       return `<td>${Math.round(v/10000000).toLocaleString('en-IN')}</td>`;
     }).join('')+'</tr>';
   }).join('');
