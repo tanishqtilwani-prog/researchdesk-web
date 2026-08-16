@@ -116,6 +116,8 @@ nav{border-bottom:1px solid var(--line);margin-bottom:24px;padding:15px 0;
       color:var(--gold);font-weight:600;margin-bottom:7px}
 h1{font-size:clamp(25px,3.2vw,33px);font-weight:500;letter-spacing:-.8px;line-height:1.12}
 .ids{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px;letter-spacing:.2px}
+.ltpline{font-family:var(--mono);font-size:13px;margin-top:7px;color:var(--ink);font-weight:500}
+.ltpline small{font-family:var(--sans);font-size:10.5px;color:var(--mut2);font-weight:400;margin-left:6px}
 .tags{margin-top:11px;display:flex;gap:5px;flex-wrap:wrap}
 .tag{font-family:var(--sans);font-size:10px;letter-spacing:.5px;text-transform:uppercase;
      font-weight:500;border:1px solid var(--line);padding:3px 8px;color:var(--mut);
@@ -331,13 +333,14 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:13px;
 @media(max-width:1000px){.ratiogrid{grid-template-columns:1fr !important;gap:18px !important}}
 @media(max-width:760px){
   .wrap{padding:0 14px 56px}
-  nav{gap:10px;padding:12px 0;flex-wrap:nowrap}
-  .brand{font-size:21px}
-  .searchwrap{max-width:none;order:3;width:100%;flex:1 1 100%}
+  nav{gap:10px;padding:12px 0;flex-wrap:wrap;align-items:center}
+  .brand{font-size:20px;order:1}
+  .mbtn{display:flex;order:2;margin-left:auto}
+  .searchwrap{max-width:none;order:3;width:100%;flex:1 1 100%;margin-top:2px}
   .searchwrap #q{padding:12px 12px 12px 38px;font-size:15px;border-radius:8px}
   .searchwrap .sicon{left:13px;width:15px;height:15px}
   .navlinks{display:none}
-  .mbtn{display:flex}
+  .tbtn{display:none}
   .grid{gap:14px}
   .card{padding:14px 14px 16px;border-radius:0;margin:0 -14px;border-left:none;border-right:none}
   .chead{padding-bottom:18px;margin-bottom:18px}
@@ -389,6 +392,7 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:13px;
     <a href="/">Home</a>
     <a href="/sectors">Sectors</a>
     <a href="/screens">Screens</a>
+    <a href="#" id="dtheme">Switch theme</a>
   </nav>
 </div>
 
@@ -614,8 +618,9 @@ async function company(code){
     .then(r=>r.json()).then(d=>{
       if(d && d.ltp!=null){
         const el = document.getElementById('ltp');
-        if(el) el.innerHTML = ' &nbsp;·&nbsp; <b style="color:var(--ink);font-weight:500">₹'+
-          Number(d.ltp).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+'</b>';
+        if(el) el.innerHTML = '₹'+
+          Number(d.ltp).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+
+          '<small>last traded price</small>';
       }
     }).catch(()=>{});
   const cn = document.getElementById('canon');
@@ -1065,6 +1070,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(mb && dr){
     mb.onclick = ()=> dr.classList.add('open');
     dr.onclick = e => { if(e.target === dr) dr.classList.remove('open'); };
+    const dt = document.getElementById('dtheme');
+    if(dt) dt.onclick = e => {
+      e.preventDefault();
+      const next = curTheme()==='dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try{ localStorage.setItem('rd-theme', next); }catch(err){}
+      paintTheme();
+      dt.textContent = next==='dark' ? 'Switch to light' : 'Switch to dark';
+    };
+    if(dt) dt.textContent = curTheme()==='dark' ? 'Switch to light' : 'Switch to dark';
   }
   const b = document.getElementById('tbtn');
   if(b) b.onclick = ()=>{
