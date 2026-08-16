@@ -612,20 +612,25 @@ async function showIndustry(i, el){
   box.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
+let LTPVAL = null;
+function paintLtp(v){
+  if(v != null) LTPVAL = v;
+  if(LTPVAL == null) return;
+  const el = document.getElementById('ltp');
+  if(!el) return;                       // element not rendered yet
+  el.innerHTML = '₹' +
+    Number(LTPVAL).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}) +
+    '<small>LTP</small>';
+}
+
 /* ---------- company ---------- */
 async function company(code){
   const [co] = await api(`companies?scrip_code=eq.${code}&select=*`);
   if(!co){ $('#main').innerHTML='<div class="msg">Company not found.</div>'; return; }
   document.title = co.company_name + ' — financials, ratios and ownership | ResearchDesk';
   if(co.isin) fetch('/api/ltp?isin='+encodeURIComponent(co.isin))
-    .then(r=>r.json()).then(d=>{
-      if(d && d.ltp!=null){
-        const el = document.getElementById('ltp');
-        if(el) el.innerHTML = '₹'+
-          Number(d.ltp).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+
-          '<small>LTP</small>';
-      }
-    }).catch(()=>{});
+    .then(r=>r.json()).then(d=>{ if(d && d.ltp!=null) paintLtp(d.ltp); })
+    .catch(()=>{});
   const cn = document.getElementById('canon');
   if(cn) cn.href = 'https://researchdesk.co.in' + slug(co.company_name, co.scrip_code);
   const md = document.querySelector('meta[name="description"]');
@@ -677,6 +682,7 @@ async function company(code){
     +   `<div class="card h-purple">${docsOnly(docs)}</div>`
     + '</div>';
   wireDesc();
+  paintLtp();
 }
 
 function descBlock(t){
